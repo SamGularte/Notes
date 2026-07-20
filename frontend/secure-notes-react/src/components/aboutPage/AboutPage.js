@@ -39,16 +39,16 @@ const AboutPage = () => {
           </li>
         </ul>
         <div className="flex space-x-4 mt-10">
-          <Link className="text-white rounded-full p-2 bg-customRed  " to="/">
+          <Link className="text-white rounded-full p-2 bg-customRed  " to="https://facebook.com">
             <FaFacebookF size={24} />
           </Link>
-          <Link className="text-white rounded-full p-2 bg-customRed  " to="/">
+          <Link className="text-white rounded-full p-2 bg-customRed  " to="https://x.com">
             <FaTwitter size={24} />
           </Link>
-          <Link className="text-white rounded-full p-2 bg-customRed  " to="/">
+          <Link className="text-white rounded-full p-2 bg-customRed  " to="https://linkedin.com">
             <FaLinkedinIn size={24} />
           </Link>
-          <Link className="text-white rounded-full p-2 bg-customRed  " to="/">
+          <Link className="text-white rounded-full p-2 bg-customRed  " to="https://instagram.com">
             <FaInstagram size={24} />
           </Link>
         </div>
