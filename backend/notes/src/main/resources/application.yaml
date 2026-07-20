@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: notes
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/secureNotes}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+  app:
+    jwtSecret: ${JWT_SECRET}
+    jwtExpirationMs: 172800000
+
+frontend:
+  url: ${FRONTEND_URL:http://localhost:3000}
