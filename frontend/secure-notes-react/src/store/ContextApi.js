@@ -6,14 +6,8 @@ import toast from "react-hot-toast";
 const ContextApi = createContext();
 
 export const ContextProvider = ({ children }) => {
-  //find the token in the localstorage
-  const getToken = localStorage.getItem("JWT_TOKEN")
-    ? JSON.stringify(localStorage.getItem("JWT_TOKEN"))
-    : null;
-  //find is the user status from the localstorage
-  const isADmin = localStorage.getItem("IS_ADMIN")
-    ? JSON.stringify(localStorage.getItem("IS_ADMIN"))
-    : false;
+  const getToken = localStorage.getItem("JWT_TOKEN");
+  const isAdminInitial = localStorage.getItem("IS_ADMIN") === "true";
 
   //store the token
   const [token, setToken] = useState(getToken);
@@ -23,7 +17,7 @@ export const ContextProvider = ({ children }) => {
   //handle sidebar opening and closing in the admin panel
   const [openSidebar, setOpenSidebar] = useState(true);
   //check the loggedin user is admin or not
-  const [isAdmin, setIsAdmin] = useState(isADmin);
+  const [isAdmin, setIsAdmin] = useState(isAdminInitial);
 
   const fetchUser = async () => {
     const user = JSON.parse(localStorage.getItem("USER"));

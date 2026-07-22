@@ -1,10 +1,8 @@
 package com.personal.notes.security.response;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Setter
-@Getter
+@Data
 public class MessageResponse {
     private String message;
 

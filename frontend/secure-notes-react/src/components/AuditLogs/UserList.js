@@ -1,7 +1,6 @@
 import React from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import Errors from "../Errors.js";
-import moment from "moment";
 import useUsers from "../../hooks/useUsers";
 import { userListsColumns } from "./UserListColumns";
 import LoadingSpinner from "../LoadingSpinner";
@@ -9,19 +8,13 @@ import LoadingSpinner from "../LoadingSpinner";
 const UserList = () => {
   const { users, loading, error } = useUsers();
 
-  const rows = users.map((item) => {
-    const formattedDate = moment(item.createdDate).format(
-      "MMMM DD, YYYY, hh:mm A"
-    );
-
-    return {
-      id: item.userId,
-      username: item.userName,
-      email: item.email,
-      created: formattedDate,
-      status: item.enabled ? "Active" : "Inactive",
-    };
-  });
+  const rows = users.map((item) => ({
+    id: item.userId,
+    username: item.userName,
+    email: item.email,
+    created: item.createdDateFormatted,
+    status: item.enabled ? "Active" : "Inactive",
+  }));
 
   if (error) {
     return <Errors message={error} />;

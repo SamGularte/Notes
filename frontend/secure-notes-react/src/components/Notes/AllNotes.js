@@ -5,6 +5,7 @@ import { FiFilePlus } from "react-icons/fi";
 import Errors from "../Errors";
 import useNotes from "../../hooks/useNotes";
 import LoadingSpinner from "../LoadingSpinner";
+import Buttons from "../../utils/Buttons";
 
 const AllNotes = () => {
   const { notes, loading, error } = useNotes();
@@ -37,10 +38,10 @@ const AllNotes = () => {
                   </p>
                   <div className="w-full flex justify-center">
                     <Link to="/create-note">
-                      <button className="flex items-center px-4 py-2 bg-btnColor text-white rounded  focus:outline-none focus:ring-2 focus:ring-blue-300">
+                      <Buttons className="flex items-center px-4 py-2 bg-btnColor text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-300">
                         <FiFilePlus className="mr-2" size={24} />
                         Create New Note
-                      </button>
+                      </Buttons>
                     </Link>
                   </div>
                 </div>

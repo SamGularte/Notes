@@ -1,13 +1,12 @@
-import React, { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import api from "../../services/api";
+import React from "react";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Divider } from "@mui/material";
 import InputField from "../InputField/InputField";
-import toast from "react-hot-toast";
 import Buttons from "../../utils/Buttons";
 import { passwordRules } from "../../utils/passwordValidation";
 import PasswordStrengthIndicator from "../../components/PasswordStrengthIndicator";
+import useResetPassword from "../../hooks/useResetPassword";
 
 const ResetPassword = () => {
   const {
@@ -18,43 +17,30 @@ const ResetPassword = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      email: "",
+      password: "",
+      confirmPassword: "",
     },
     mode: "onTouched",
   });
 
-  const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { handleResetPassword, loading } = useResetPassword();
+  const password = watch("password");
 
-  const handleResetPassword = async (data) => {
-    const { password } = data;
-
+  const onSubmit = async (data) => {
     const token = searchParams.get("token");
-
-    setLoading(true);
-    try {
-      const formData = new URLSearchParams();
-
-      formData.append("token", token);
-      formData.append("newPassword", password);
-      await api.post("/auth/public/reset-password", formData, {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      });
-      toast.success("Password reset successful! You can now log in.");
+    const success = await handleResetPassword(data.password, token);
+    if (success) {
       reset();
-    } catch (error) {
-      toast.error("Error resetting password. Please try again.");
-    } finally {
-      setLoading(false);
+      navigate("/login");
     }
   };
 
   return (
     <div className="min-h-[calc(100vh-74px)] flex justify-center items-center">
       <form
-        onSubmit={handleSubmit(handleResetPassword)}
+        onSubmit={handleSubmit(onSubmit)}
         className="sm:w-[450px] w-[360px]  shadow-custom py-8 sm:px-8 px-4"
       >
         <div>
@@ -79,7 +65,21 @@ const ResetPassword = () => {
             errors={errors}
             rules={passwordRules}
           />
-          <PasswordStrengthIndicator value={watch("password")} />
+          <PasswordStrengthIndicator value={password} />
+          <InputField
+            label="Confirm Password"
+            required
+            id="confirmPassword"
+            type="password"
+            message="*Please confirm your password"
+            placeholder="confirm your Password"
+            register={register}
+            errors={errors}
+            rules={{
+              validate: (value) =>
+                value === password || "Passwords do not match",
+            }}
+          />
         </div>
         <Buttons
           disabled={loading}

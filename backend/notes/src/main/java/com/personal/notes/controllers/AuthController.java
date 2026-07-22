@@ -1,5 +1,7 @@
 package com.personal.notes.controllers;
 
+import com.personal.notes.exceptions.InvalidCredentialsException;
+import com.personal.notes.exceptions.DuplicateResourceException;
 import com.personal.notes.models.Role;
 import com.personal.notes.models.User;
 import com.personal.notes.models.enums.AppRole;
@@ -11,8 +13,17 @@ import com.personal.notes.security.request.SignupRequest;
 import com.personal.notes.security.response.LoginResponse;
 import com.personal.notes.security.response.MessageResponse;
 import com.personal.notes.security.response.UserInfoResponse;
+import com.personal.notes.services.TotpService;
 import com.personal.notes.services.UserService;
+import com.personal.notes.services.impl.UserDetailsImpl;
+import com.personal.notes.util.AuthUtil;
+import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,16 +35,17 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
+@Validated
 @RequestMapping("/api/auth")
 public class AuthController {
 
@@ -55,46 +67,47 @@ public class AuthController {
     @Autowired
     UserService userService;
 
+    @Autowired
+    AuthUtil authUtil;
+
+    @Autowired
+    TotpService totpService;
+
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
     @PostMapping("/public/signin")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         Authentication authentication;
         try {
             authentication = authenticationManager
                     .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
         } catch (AuthenticationException exception) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("message", "Bad credentials");
-            map.put("status", false);
-            return new ResponseEntity<Object>(map, HttpStatus.NOT_FOUND);
+            throw new InvalidCredentialsException("Bad credentials");
         }
 
-//      set the authentication
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         String jwtToken = jwtUtils.generateTokenFromUsername(userDetails);
 
-        // Collect roles from the UserDetails
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
-        // Prepare the response body, now including the JWT token directly in the body
-        LoginResponse response = new LoginResponse(userDetails.getUsername(), roles, jwtToken);
+        LoginResponse response = new LoginResponse(jwtToken, userDetails.getUsername(), roles);
 
-        // Return the response entity with the JWT token included in the response body
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/public/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
         if (userRepository.existsByUserName(signUpRequest.getUsername())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
+            throw new DuplicateResourceException("User", "username", signUpRequest.getUsername());
         }
 
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
+            throw new DuplicateResourceException("User", "email", signUpRequest.getEmail());
         }
 
         // Create new user's account
@@ -102,31 +115,17 @@ public class AuthController {
                 signUpRequest.getEmail(),
                 encoder.encode(signUpRequest.getPassword()));
 
-        Set<String> strRoles = signUpRequest.getRole();
-        Role role;
+        Role role = roleRepository.findByRoleName(AppRole.ROLE_USER)
+                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 
-        if (strRoles == null || strRoles.isEmpty()) {
-            role = roleRepository.findByRoleName(AppRole.ROLE_USER)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-        } else {
-            String roleStr = strRoles.iterator().next();
-            if (roleStr.equals("admin")) {
-                role = roleRepository.findByRoleName(AppRole.ROLE_ADMIN)
-                        .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-            } else {
-                role = roleRepository.findByRoleName(AppRole.ROLE_USER)
-                        .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-            }
-
-            user.setAccountNonLocked(true);
-            user.setAccountNonExpired(true);
-            user.setCredentialsNonExpired(true);
-            user.setEnabled(true);
-            user.setCredentialsExpiryDate(LocalDate.now().plusYears(1));
-            user.setAccountExpiryDate(LocalDate.now().plusYears(1));
-            user.setTwoFactorEnabled(false);
-            user.setSignUpMethod("email");
-        }
+        user.setAccountNonLocked(true);
+        user.setAccountNonExpired(true);
+        user.setCredentialsNonExpired(true);
+        user.setEnabled(true);
+        user.setCredentialsExpiryDate(LocalDate.now().plusYears(1));
+        user.setAccountExpiryDate(LocalDate.now().plusYears(1));
+        user.setTwoFactorEnabled(false);
+        user.setSignUpMethod("email");
         user.setRole(role);
         userRepository.save(user);
 
@@ -161,6 +160,126 @@ public class AuthController {
     @GetMapping("/username")
     public String currentUserName(@AuthenticationPrincipal UserDetails userDetails) {
         return (userDetails != null) ? userDetails.getUsername() : "";
+    }
+
+    @PostMapping("/public/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestParam @Email @NotBlank String email){
+        userService.generatePasswordResetToken(email);
+        return ResponseEntity.ok(new MessageResponse("Password reset email sent"));
+    }
+
+    @PostMapping("/public/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestParam @NotBlank String token, @RequestParam @NotBlank @Size(min = 6, max = 40) String newPassword){
+        userService.resetPassword(token, newPassword);
+        return ResponseEntity.ok(new MessageResponse("Password reset successful"));
+    }
+
+    @PostMapping("/enable-2fa")
+    public ResponseEntity<String> enable2FA(){
+        Long userId = Long.valueOf(authUtil.loggedInUserId());
+        GoogleAuthenticatorKey secret = userService.generate2FASecret(userId);
+        String qrCodeUrl = totpService.getQrCodeUrl(secret, userService.getUserById(userId).getUserName());
+        return ResponseEntity.ok(qrCodeUrl);
+    }
+
+    @PostMapping("/disable-2fa")
+    public ResponseEntity<String> disable2FA(){
+        Long userId = Long.valueOf(authUtil.loggedInUserId());
+        userService.disable2FA(userId);
+        return ResponseEntity.ok("2FA disabled");
+    }
+
+    @PostMapping("/verify-2fa")
+    public ResponseEntity<String> verify2FA(@RequestParam int code){
+        Long userId = Long.valueOf(authUtil.loggedInUserId());
+        boolean isValid = userService.validate2FACode(userId, code);
+        if(isValid){
+            userService.enable2FA(userId);
+            return ResponseEntity.ok("2FA Verified");
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid 2FA code");
+        }
+    }
+
+    @GetMapping("/user/2fa-status")
+    public ResponseEntity<?> get2FaStatus(){
+        User user = authUtil.loggedInUser();
+        if(user != null){
+            return ResponseEntity.ok().body(Map.of("is2faEnabled", user.isTwoFactorEnabled()));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+    }
+
+    @PutMapping("/update-expiry-status")
+    public ResponseEntity<?> updateExpiryStatus(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam boolean expire) {
+        User user = userService.findByUsername(userDetails.getUsername());
+        user.setAccountNonExpired(!expire);
+        userRepository.save(user);
+        return ResponseEntity.ok(new MessageResponse("Account expiry status updated"));
+    }
+
+    @PutMapping("/update-lock-status")
+    public ResponseEntity<?> updateLockStatus(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam boolean lock) {
+        User user = userService.findByUsername(userDetails.getUsername());
+        user.setAccountNonLocked(!lock);
+        userRepository.save(user);
+        return ResponseEntity.ok(new MessageResponse("Account lock status updated"));
+    }
+
+    @PutMapping("/update-enabled-status")
+    public ResponseEntity<?> updateEnabledStatus(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam boolean enabled) {
+        User user = userService.findByUsername(userDetails.getUsername());
+        user.setEnabled(enabled);
+        userRepository.save(user);
+        return ResponseEntity.ok(new MessageResponse("Account enabled status updated"));
+    }
+
+    @PutMapping("/update-credentials-expiry-status")
+    public ResponseEntity<?> updateCredentialsExpiryStatus(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam boolean expire) {
+        User user = userService.findByUsername(userDetails.getUsername());
+        user.setCredentialsNonExpired(!expire);
+        userRepository.save(user);
+        return ResponseEntity.ok(new MessageResponse("Credentials expiry status updated"));
+    }
+
+    @PutMapping("/update-credentials")
+    public ResponseEntity<?> updateCredentials(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam @NotBlank @Size(min = 3, max = 20) String newUsername,
+            @RequestParam @Size(max = 40) String newPassword) {
+        User user = userService.findByUsername(userDetails.getUsername());
+        if (!newUsername.equals(user.getUserName())) {
+            if (userRepository.existsByUserName(newUsername)) {
+                throw new DuplicateResourceException("User", "username", newUsername);
+            }
+            user.setUserName(newUsername);
+        }
+        if (newPassword != null && !newPassword.isBlank()) {
+            user.setPassword(encoder.encode(newPassword));
+        }
+        userRepository.save(user);
+        return ResponseEntity.ok(new MessageResponse("Credentials updated successfully"));
+    }
+
+    @PostMapping("/public/verify-2fa-login")
+    public ResponseEntity<String> verify2FALogin(@RequestParam int code, @RequestParam String jwtToken){
+        String username = jwtUtils.getUserNameFromJwtToken(jwtToken);
+        User user = userService.findByUsername(username);
+        boolean isValid = userService.validate2FACode(user.getUserId(), code);
+        if(isValid){
+            return ResponseEntity.ok("2FA Verified");
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid 2FA code");
+        }
     }
 
 }

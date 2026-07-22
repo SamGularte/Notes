@@ -1,28 +1,22 @@
 import * as React from "react";
 import { AiOutlineWarning } from "react-icons/ai";
 import Modal from "@mui/material/Modal";
-import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import api from "../services/api";
+import useDeleteNote from "../hooks/useDeleteNote";
+import Buttons from "../utils/Buttons";
 
 export default function Modals({ open, setOpen, noteId }) {
   const navigate = useNavigate();
-  const [noteDeleteLoader, setNoteDeleteLoader] = React.useState(false);
+  const { deleteNote, deleteLoader } = useDeleteNote();
 
   const onNoteDeleteHandler = async () => {
-    try {
-      setNoteDeleteLoader(true);
-
-      await api.delete(`/notes/${noteId}`);
-      toast.success("Note Delete successful");
+    const success = await deleteNote(noteId);
+    if (success) {
       setOpen(false);
       navigate("/notes");
-    } catch (err) {
-      toast.error("Delete Note Failed");
-    } finally {
-      setNoteDeleteLoader(false);
     }
   };
+
   return (
     <div>
       <Modal
@@ -40,18 +34,18 @@ export default function Modals({ open, setOpen, noteId }) {
               Are you sure you want to delete this note?
             </p>
             <div className="mt-6 flex justify-center space-x-4">
-              <button
-                onClick={() => setOpen(false)}
+              <Buttons
+                onClickhandler={() => setOpen(false)}
                 className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400"
               >
                 Cancel
-              </button>
-              <button
-                onClick={onNoteDeleteHandler}
+              </Buttons>
+              <Buttons
+                onClickhandler={onNoteDeleteHandler}
                 className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
               >
-                {noteDeleteLoader ? "Loading" : "Delete"}
-              </button>
+                {deleteLoader ? "Loading" : "Delete"}
+              </Buttons>
             </div>
           </div>
         </div>

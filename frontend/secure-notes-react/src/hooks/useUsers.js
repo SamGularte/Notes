@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "../services/api";
+import moment from "moment";
 
 const useUsers = () => {
   const [users, setUsers] = useState([]);
@@ -11,7 +12,15 @@ const useUsers = () => {
     setError(false);
     try {
       const response = await api.get("/admin/getusers");
-      setUsers(Array.isArray(response.data) ? response.data : []);
+      const parsed = Array.isArray(response.data)
+        ? response.data.map((user) => ({
+            ...user,
+            createdDateFormatted: moment(user.createdDate).format(
+              "MMMM DD, YYYY, hh:mm A"
+            ),
+          }))
+        : [];
+      setUsers(parsed);
     } catch (err) {
       setError(err?.response?.data?.message);
     } finally {

@@ -1,21 +1,16 @@
-import React, { useState } from "react";
-import api from "../../services/api";
+import React from "react";
 import { useForm } from "react-hook-form";
 import InputField from "../InputField/InputField";
 import Buttons from "../../utils/Buttons";
 import { Divider } from "@mui/material";
-import toast from "react-hot-toast";
-import { Link, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
-import { useMyContext } from "../../store/ContextApi";
+import { Link } from "react-router-dom";
+import useForgotPassword from "../../hooks/useForgotPassword";
+import useRedirectIfAuthenticated from "../../hooks/useRedirectIfAuthenticated";
 
 const ForgotPassword = () => {
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  // Access the token  using the useMyContext hook from the ContextProvider
-  const { token } = useMyContext();
+  useRedirectIfAuthenticated();
+  const { handleForgotPassword, loading } = useForgotPassword();
 
-  //react hook form initialization
   const {
     register,
     handleSubmit,
@@ -29,36 +24,9 @@ const ForgotPassword = () => {
   });
 
   const onPasswordForgotHandler = async (data) => {
-    //destructuring email from the data object
-    const { email } = data;
-
-    try {
-      setLoading(true);
-
-      const formData = new URLSearchParams();
-      formData.append("email", email);
-      await api.post("/auth/public/forgot-password", formData, {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      });
-
-      //reset the field by using reset() function provided by react hook form after submit
-      reset();
-
-      //showing success message
-      toast.success("Password reset email sent! Check your inbox.");
-    } catch (error) {
-      toast.error("Error sending password reset email. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    const success = await handleForgotPassword(data.email);
+    if (success) reset();
   };
-
-  //if there is token  exist navigate  the user to the home page if he tried to access the login page
-  useEffect(() => {
-    if (token) navigate("/");
-  }, [token, navigate]);
 
   return (
     <div className="min-h-[calc(100vh-74px)] flex justify-center items-center">

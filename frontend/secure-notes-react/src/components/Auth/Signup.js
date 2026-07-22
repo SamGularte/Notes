@@ -8,18 +8,15 @@ import Buttons from "../../utils/Buttons";
 import InputField from "../InputField/InputField";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
-import { useMyContext } from "../../store/ContextApi";
-import { useEffect } from "react";
 import { passwordRules } from "../../utils/passwordValidation";
+import useRedirectIfAuthenticated from "../../hooks/useRedirectIfAuthenticated";
 import PasswordStrengthIndicator from "../../components/PasswordStrengthIndicator";
 
 const Signup = () => {
   const apiUrl = process.env.REACT_APP_API_URL;
-  const [role, setRole] = useState();
   const [loading, setLoading] = useState(false);
-  // Access the token and setToken function using the useMyContext hook from the ContextProvider
-  const { token } = useMyContext();
   const navigate = useNavigate();
+  useRedirectIfAuthenticated();
 
   //react hook form initialization
   const {
@@ -38,17 +35,12 @@ const Signup = () => {
     mode: "onTouched",
   });
 
-  useEffect(() => {
-    setRole("ROLE_USER");
-  }, []);
-
   const onSubmitHandler = async (data) => {
     const { username, email, password } = data;
     const sendData = {
       username,
       email,
       password,
-      role: [role],
     };
 
     try {
@@ -76,11 +68,6 @@ const Signup = () => {
       setLoading(false);
     }
   };
-
-  //if there is token  exist navigate to the user to the home page if he tried to access the login page
-  useEffect(() => {
-    if (token) navigate("/");
-  }, [navigate, token]);
 
   return (
     <div className="min-h-[calc(100vh-74px)] flex justify-center items-center">

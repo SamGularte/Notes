@@ -1,6 +1,5 @@
 package com.personal.notes.dtos;
 
-import com.personal.notes.models.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,11 +20,6 @@ public class UserDTO {
     private boolean credentialsNonExpired;
     private boolean enabled;
     private LocalDate credentialsExpiryDate;
-    private LocalDate accountExpiryDate;
-    private String twoFactorSecret;
-    private boolean isTwoFactorEnabled;
-    private String signUpMethod;
-    private Role role;
+    private RoleDTO role;
     private LocalDateTime createdDate;
-    private LocalDateTime updatedDate;
 }

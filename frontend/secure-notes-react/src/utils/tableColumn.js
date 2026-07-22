@@ -1,5 +1,6 @@
 import { MdDateRange } from "react-icons/md";
 import { auditLogsTruncateTexts } from "./truncateText";
+import { parseContent } from "./parseContent";
 
 export const auditLogscolumn = [
   {
@@ -74,9 +75,9 @@ export const auditLogscolumn = [
     cellClassName: "text-slate-700 font-normal  ",
     renderHeader: (params) => <span className="ps-10">Note Content</span>,
     renderCell: (params) => {
-      const contens = JSON.parse(params?.value)?.content;
+      const contents = parseContent(params?.value);
 
-      const response = auditLogsTruncateTexts(contens, 50);
+      const response = auditLogsTruncateTexts(contents, 50);
 
       return <p className=" text-slate-700 text-center   ">{response}</p>;
     },

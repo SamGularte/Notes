@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { IoMenu } from "react-icons/io5";
 import { RxCross2 } from "react-icons/rx";
 import { useMyContext } from "../store/ContextApi";
+import Buttons from "../utils/Buttons";
 
 const Navbar = () => {
   //handle the header opening and closing menu for the tablet/mobile device
@@ -62,16 +63,6 @@ const Navbar = () => {
             </>
           )}
 
-          <Link to="/contact">
-            <li
-              className={`${
-                pathName === "/contact" ? "font-semibold " : ""
-              } py-2 cursor-pointer hover:text-slate-300`}
-            >
-              Contact
-            </li>
-          </Link>
-
           <Link to="/about">
             <li
               className={`py-2 cursor-pointer hover:text-slate-300 ${
@@ -104,12 +95,12 @@ const Navbar = () => {
                   </li>
                 </Link>
               )}
-              <button
-                onClick={handleLogout}
+              <Buttons
+                onClickhandler={handleLogout}
                 className="w-24 text-center bg-customRed font-semibold px-4 py-2 rounded-sm cursor-pointer hover:text-slate-300"
               >
                 LogOut
-              </button>
+              </Buttons>
             </>
           ) : (
             <Link to="/signup">

@@ -1,8 +1,7 @@
 package com.personal.notes.controllers;
 
+import com.personal.notes.dtos.RoleDTO;
 import com.personal.notes.dtos.UserDTO;
-import com.personal.notes.models.Role;
-import com.personal.notes.models.User;
 import com.personal.notes.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,13 +18,13 @@ public class AdminController {
     UserService userService;
 
     @GetMapping("/getusers")
-    public ResponseEntity<List<User>> getAllUsers() {
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
         return new ResponseEntity<>(userService.getAllUsers(), HttpStatus.OK);
     }
 
     @PutMapping("/update-role")
     public ResponseEntity<String> updateUserRole(@RequestParam Long userId, 
-                                                 @RequestParam String roleName) {
+                                                  @RequestParam String roleName) {
         userService.updateUserRole(userId, roleName);
         return ResponseEntity.ok("User role updated");
     }
@@ -42,7 +41,7 @@ public class AdminController {
     }
 
     @GetMapping("/roles")
-    public List<Role> getAllRoles() {
+    public List<RoleDTO> getAllRoles() {
         return userService.getAllRoles();
     }
 
@@ -66,12 +65,8 @@ public class AdminController {
 
     @PutMapping("/update-password")
     public ResponseEntity<String> updatePassword(@RequestParam Long userId, @RequestParam String password) {
-        try {
-            userService.updatePassword(userId, password);
-            return ResponseEntity.ok("Password updated");
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+        userService.updatePassword(userId, password);
+        return ResponseEntity.ok("Password updated");
     }
 
 

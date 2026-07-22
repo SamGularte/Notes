@@ -1,18 +1,18 @@
 package com.personal.notes.services;
 
-import com.personal.notes.models.AuditLog;
+import com.personal.notes.dtos.AuditLogDTO;
 import com.personal.notes.models.Note;
 
 import java.util.List;
 
 public interface AuditLogService {
-    void LogNoteCreation(String username, Note note);
+    void logNoteCreation(String username, Note note);
 
-    void LogNoteUpdate(String username, Note note);
+    void logNoteUpdate(String username, Note note);
     
-    void LogNoteDeletion(String username, Long noteId);
+    void logNoteDeletion(String username, Long noteId);
 
-    List<AuditLog> getAllAuditLogs();
+    List<AuditLogDTO> getAllAuditLogs();
 
-    List<AuditLog> getAuditLogsForNoteId(Long id);
+    List<AuditLogDTO> getAuditLogsForNoteId(Long id);
 }

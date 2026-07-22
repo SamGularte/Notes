@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "../services/api";
+import moment from "moment";
+import { parseContent } from "../utils/parseContent";
 
 const useNotes = () => {
   const [notes, setNotes] = useState([]);
@@ -13,7 +15,8 @@ const useNotes = () => {
       const response = await api.get("/notes");
       const parsedNotes = response.data.map((note) => ({
         ...note,
-        parsedContent: JSON.parse(note.content).content,
+        parsedContent: parseContent(note.content),
+        createdAtFormatted: moment(note.createdAt).format("D MMMM YYYY"),
       }));
       setNotes(parsedNotes);
     } catch (err) {

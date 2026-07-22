@@ -1,6 +1,6 @@
 package com.personal.notes.controllers;
 
-import com.personal.notes.models.AuditLog;
+import com.personal.notes.dtos.AuditLogDTO;
 import com.personal.notes.services.AuditLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,12 +19,13 @@ public class AuditLogController {
     AuditLogService auditLogService;
 
     @GetMapping
-    public List<AuditLog> getAuditLogs(){
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public List<AuditLogDTO> getAuditLogs(){
         return auditLogService.getAllAuditLogs();
     }
 
     @GetMapping("/note/{id}")
-    public List<AuditLog> getNoteAuditLogs(@PathVariable Long id){
+    public List<AuditLogDTO> getNoteAuditLogs(@PathVariable Long id){
         return auditLogService.getAuditLogsForNoteId(id);
     }
 }

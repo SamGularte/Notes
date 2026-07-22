@@ -10,7 +10,7 @@ import Divider from "@mui/material/Divider";
 import Buttons from "../../utils/Buttons";
 import toast from "react-hot-toast";
 import { useMyContext } from "../../store/ContextApi";
-import { useEffect } from "react";
+import useRedirectIfAuthenticated from "../../hooks/useRedirectIfAuthenticated";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -20,8 +20,9 @@ const Login = () => {
   const [jwtToken, setJwtToken] = useState("");
   const [loading, setLoading] = useState(false);
   // Access the token and setToken function using the useMyContext hook from the ContextProvider
-  const { setToken, token } = useMyContext();
+  const { setToken } = useMyContext();
   const navigate = useNavigate();
+  useRedirectIfAuthenticated();
 
   //react hook form initialization
   const {
@@ -111,11 +112,6 @@ const Login = () => {
       setLoading(false);
     }
   };
-
-  //if there is token  exist navigate  the user to the home page if he tried to access the login page
-  useEffect(() => {
-    if (token) navigate("/");
-  }, [navigate, token]);
 
   //step1 will render the login form and step-2 will render the 2fa verification form
   return (

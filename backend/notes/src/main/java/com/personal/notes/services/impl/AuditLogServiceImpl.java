@@ -1,5 +1,6 @@
 package com.personal.notes.services.impl;
 
+import com.personal.notes.dtos.AuditLogDTO;
 import com.personal.notes.models.AuditLog;
 import com.personal.notes.models.Note;
 import com.personal.notes.repositories.AuditLogRepository;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AuditLogServiceImpl implements AuditLogService {
@@ -17,7 +19,7 @@ public class AuditLogServiceImpl implements AuditLogService {
     AuditLogRepository auditLogRepository;
 
     @Override
-    public void LogNoteCreation(String username, Note note){
+    public void logNoteCreation(String username, Note note){
         AuditLog log = new AuditLog();
         log.setAction("CREATE");
         log.setUsername(username);
@@ -28,7 +30,7 @@ public class AuditLogServiceImpl implements AuditLogService {
     }
 
     @Override
-    public void LogNoteUpdate(String username, Note note){
+    public void logNoteUpdate(String username, Note note){
         AuditLog log = new AuditLog();
         log.setAction("UPDATE");
         log.setUsername(username);
@@ -39,7 +41,7 @@ public class AuditLogServiceImpl implements AuditLogService {
     }
 
     @Override
-    public void LogNoteDeletion(String username, Long noteId){
+    public void logNoteDeletion(String username, Long noteId){
         AuditLog log = new AuditLog();
         log.setAction("DELETE");
         log.setUsername(username);
@@ -49,12 +51,23 @@ public class AuditLogServiceImpl implements AuditLogService {
     }
 
     @Override
-    public List<AuditLog> getAllAuditLogs() {
-        return auditLogRepository.findAll();
+    public List<AuditLogDTO> getAllAuditLogs() {
+        return auditLogRepository.findAll().stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
     @Override
-    public List<AuditLog> getAuditLogsForNoteId(Long id) {
-        return auditLogRepository.findByNoteId(id);
+    public List<AuditLogDTO> getAuditLogsForNoteId(Long id) {
+        return auditLogRepository.findByNoteId(id).stream().map(this::convertToDto).collect(Collectors.toList());
+    }
+
+    private AuditLogDTO convertToDto(AuditLog auditLog) {
+        return new AuditLogDTO(
+                auditLog.getId(),
+                auditLog.getAction(),
+                auditLog.getUsername(),
+                auditLog.getNoteId(),
+                auditLog.getNoteContent(),
+                auditLog.getTimestamp()
+        );
     }
 }

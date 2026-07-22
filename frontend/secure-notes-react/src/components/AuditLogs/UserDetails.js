@@ -205,12 +205,12 @@ const UserDetails = () => {
                   ))}
                 </select>
               </div>
-              <button
-                className="bg-btnColor hover:text-slate-300 px-4 py-2 rounded-md text-white "
-                onClick={handleUpdateRole}
+              <Buttons
+                onClickhandler={handleUpdateRole}
+                className="bg-btnColor hover:text-slate-300 px-4 py-2 rounded-md text-white"
               >
                 {updateRoleLoader ? "Loading..." : "Update Role"}
-              </button>
+              </Buttons>
             </div>
 
             <hr className="py-2" />
@@ -268,12 +268,12 @@ const UserDetails = () => {
                 <input
                   className="text-14 w-5 h-5"
                   type="checkbox"
-                  name="credentialsExpire"
+                  name="expire"
                   checked={!user?.credentialsNonExpired}
                   onChange={(e) =>
                     handleCheckboxChange(
                       e,
-                      `/admin/update-credentials-expiry-status?userId=${userId}&expire=${user?.credentialsNonExpired}`
+                      `/admin/update-credentials-expiry-status`
                     )
                   }
                 />

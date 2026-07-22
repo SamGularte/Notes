@@ -2,8 +2,8 @@ spring:
   application:
     name: notes
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/secureNotes}
-    username: ${DB_USERNAME:root}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
@@ -14,6 +14,25 @@ spring:
   app:
     jwtSecret: ${JWT_SECRET}
     jwtExpirationMs: 172800000
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            scope: read:user,user:email
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
 
 frontend:
-  url: ${FRONTEND_URL:http://localhost:3000}
+  url: ${FRONTEND_URL}

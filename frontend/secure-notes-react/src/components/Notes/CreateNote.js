@@ -3,36 +3,21 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { MdNoteAlt } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-import api from "../../services/api";
 import Buttons from "../../utils/Buttons";
-import toast from "react-hot-toast";
+import useCreateNote from "../../hooks/useCreateNote";
 
 const CreateNote = () => {
   const navigate = useNavigate();
-  //set the content of the reactquill
   const [editorContent, setEditorContent] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { createNote, loading } = useCreateNote();
 
-  const handleChange = (content, delta, source, editor) => {
+  const handleChange = (content) => {
     setEditorContent(content);
   };
 
-  //note create handler
   const handleSubmit = async () => {
-    if (editorContent.trim().length === 0) {
-      return toast.error("Note content is required");
-    }
-    try {
-      setLoading(true);
-      const noteData = { content: editorContent };
-      await api.post("/notes", noteData);
-      toast.success("Note create successful");
-      navigate("/notes");
-    } catch (err) {
-      toast.error("Error creating note");
-    } finally {
-      setLoading(false);
-    }
+    const success = await createNote(editorContent);
+    if (success) navigate("/notes");
   };
 
   return (

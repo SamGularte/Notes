@@ -1,6 +1,7 @@
 import React from "react";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import Buttons from "../../utils/Buttons";
 
 const AccessDenied = () => {
   const navigate = useNavigate();
@@ -19,12 +20,12 @@ const AccessDenied = () => {
         <p className="text-gray-600 mb-4">
           You do not have permission to view this page.
         </p>
-        <button
-          onClick={goHome}
+        <Buttons
+          onClickhandler={goHome}
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
           Go Back Home
-        </button>
+        </Buttons>
       </div>
     </div>
   );

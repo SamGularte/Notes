@@ -1,6 +1,7 @@
 import React from "react";
 import { FiAlertCircle } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import Buttons from "../utils/Buttons";
 
 const Errors = ({ message }) => {
   const navigate = useNavigate();
@@ -18,12 +19,12 @@ const Errors = ({ message }) => {
         </h2>
         <p className="text-gray-600 mb-6 font-semibold">{message}</p>
         <div className="flex justify-center">
-          <button
-            onClick={onBackHandler}
-            className="flex items-center px-4 py-2 bg-btnColor text-white rounded  focus:outline-none focus:ring-2 focus:ring-blue-300"
+          <Buttons
+            onClickhandler={onBackHandler}
+            className="flex items-center px-4 py-2 bg-btnColor text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
           >
             Go Back
-          </button>
+          </Buttons>
         </div>
       </div>
     </div>
