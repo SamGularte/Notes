@@ -1,3 +1,17 @@
+# =============================================================
+# Define as variáveis de ambiente abaixo antes de rodar:
+#
+# DB_URL=jdbc:mysql://localhost:3306/secureNotes
+# DB_USERNAME=root
+# DB_PASSWORD=admin123
+# JWT_SECRET=MXOP9wbTt01DP6bL1Q4evQjh2NG7Jgks9MmSFg2NA2J
+# MAIL_USERNAME=securenotes18@gmail.com
+# MAIL_PASSWORD=czpmfugikjczisgc
+# GITHUB_CLIENT_ID=Ov23liOKBKwqL8KaYLTR
+# GITHUB_CLIENT_SECRET=fd0425710e706bf30e59296397cae1b188802804
+# FRONTEND_URL=http://localhost:3000
+# =============================================================
+
 spring:
   application:
     name: notes

@@ -18,16 +18,7 @@ const Footer = () => {
               <span className="hover:underline">About Us</span>
             </Link>
           </li>
-          <li>
-            <Link to="/">
-              <span className="hover:underline">Services</span>
-            </Link>
-          </li>
-          <li>
-            <Link to="/">
-              <span className="hover:underline">Privacy Policy</span>
-            </Link>
-          </li>
+
         </ul>
 
         <p className="w-fit  flex items-center text-white text-sm">
